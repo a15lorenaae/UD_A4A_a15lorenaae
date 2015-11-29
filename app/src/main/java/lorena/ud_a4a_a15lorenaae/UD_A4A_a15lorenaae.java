@@ -28,17 +28,18 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
+
 
 
 public class UD_A4A_a15lorenaae extends Activity {
 public static enum TIPOREDE{MOBIL,WIFI,SENREDE};
-    private ArrayList<Rutas> rutas=new ArrayList<Rutas>();
+    TextView texto;
     private TIPOREDE conexion;
     private String xml_Descargar="http://manuais.iessanclemente.net/images/2/20/Platega_pdm_rutas.xml";
     private Thread thread;
     private File rutaArquivo;
-    String carpetaxml=Environment.getExternalStorageDirectory().getAbsolutePath()+"/RUTA/";
+    String carpetaxml=Environment.getExternalStorageDirectory().getAbsolutePath()+"/RUTAS/";
+    String nomeArquivo=Uri.parse(xml_Descargar).getLastPathSegment();
     private TIPOREDE comprobarRede(){
         NetworkInfo networkInfo=null;
         ConnectivityManager connMgr=(ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -63,7 +64,6 @@ public static enum TIPOREDE{MOBIL,WIFI,SENREDE};
             return;
         }
         HttpURLConnection conn=null;
-        String nomeArquivo= Uri.parse(xml_Descargar).getLastPathSegment();
         File carpxml=new File(carpetaxml);
         rutaArquivo=new File(carpetaxml,nomeArquivo);
         if(!carpxml.exists())carpxml.mkdirs();
@@ -116,26 +116,24 @@ public static enum TIPOREDE{MOBIL,WIFI,SENREDE};
 
     }
     private void lerArquivo() throws IOException,XmlPullParserException{
-        InputStream is= new FileInputStream(nomeArquivo);
+        InputStream is= new FileInputStream(Environment.getExternalStorageDirectory().getAbsolutePath()+"/RUTAS/"+nomeArquivo);
         XmlPullParser parser= Xml.newPullParser();
         parser.setInput(is, "UTF-8");
-        int evento=parser.nextTag();
-        Rutas ruta=null;
+        int evento=parser.next();
         while (evento!=XmlPullParser.END_DOCUMENT) {
             if (evento == XmlPullParser.START_TAG) {
-                ruta = new Rutas();
-                evento = parser.nextTag();
-                ruta.setNome(parser.nextText());//Pasamos a <Nome>
-                evento = parser.nextTag();//Pasamos a direccion
-                ruta.setDescripcion(parser.nextText());
+                if (parser.getName().equals("ruta")) {//un novo contacto
+                    evento = parser.nextTag();//Pasamos a nome
+                    texto.append(parser.nextText() + "-");//Espacio entre os dous datos
+                    evento = parser.nextTag();//Pasamos a direccion*/
+                    texto.append(parser.nextText()+"\n");//Nova linea
+
+                }
             }
+
+
+            evento = parser.next();
         }
-        if(evento==XmlPullParser.END_TAG) {
-            if (parser.getName().equals("ruta")) {//un novo contacto
-                rutas.add(ruta);
-            }
-        }
-        evento=parser.next();
         is.close();
         }
 
@@ -147,7 +145,7 @@ public static enum TIPOREDE{MOBIL,WIFI,SENREDE};
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ud__a4_a_a15lorenaae);
         conexion=comprobarRede();
-        TextView texto=(TextView)findViewById(R.id.texto);
+        texto=(TextView)findViewById(R.id.texto);
         if (conexion==TIPOREDE.SENREDE){
             Toast.makeText(this,"NON SE PODE FACER ESTA PRACTICA SEN CONEXION A INTERNET",Toast.LENGTH_LONG).show();
             finish();
@@ -155,11 +153,7 @@ public static enum TIPOREDE{MOBIL,WIFI,SENREDE};
         XestionarEventos();
         try{
             lerArquivo();
-            for(Rutas ruta1:rutas) {
-                texto.append("\nNova Ruta: ");
-                texto.append(ruta1.getNome());
-                texto.append(ruta1.getDescripcion());
-            }
+
             } catch (IOException e) {
 
                 e.printStackTrace();
