@@ -28,11 +28,12 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-
+import java.util.ArrayList;
 
 
 public class UD_A4A_a15lorenaae extends Activity {
 public static enum TIPOREDE{MOBIL,WIFI,SENREDE};
+    ArrayList<Rutas>rutas=new ArrayList<Rutas>();
     TextView texto;
     private TIPOREDE conexion;
     private String xml_Descargar="http://manuais.iessanclemente.net/images/2/20/Platega_pdm_rutas.xml";
@@ -120,16 +121,24 @@ public static enum TIPOREDE{MOBIL,WIFI,SENREDE};
         XmlPullParser parser= Xml.newPullParser();
         parser.setInput(is, "UTF-8");
         int evento=parser.next();
+        Rutas ruta=null;
         while (evento!=XmlPullParser.END_DOCUMENT) {
             if (evento == XmlPullParser.START_TAG) {
                 if (parser.getName().equals("ruta")) {//un novo contacto
+                    ruta = new Rutas();
+                    evento = parser.nextTag();
+                    ruta.setNome(parser.nextText());
                     evento = parser.nextTag();//Pasamos a nome
-                    texto.append(parser.nextText() + "-");//Espacio entre os dous datos
-                    evento = parser.nextTag();//Pasamos a direccion*/
-                    texto.append(parser.nextText()+"\n");//Nova linea
+                    ruta.setDescricion(parser.nextText());
+                }
 
                 }
-            }
+                if(evento==XmlPullParser.END_TAG){
+                    if(parser.getName().equals("ruta")){
+                        rutas.add(ruta);
+                    }
+                }
+
 
 
             evento = parser.next();
@@ -151,8 +160,15 @@ public static enum TIPOREDE{MOBIL,WIFI,SENREDE};
             finish();
         }
         XestionarEventos();
+
         try{
             lerArquivo();
+            for(Rutas ruta:rutas){
+                texto.append(ruta.getNome());
+                texto.append("-");
+                texto.append(ruta.getDescricion());
+                texto.append("\n");
+            }
 
             } catch (IOException e) {
 
